@@ -1,0 +1,5 @@
+add_executable(MysqlConnection_test MysqlConnection_test.cpp)
+target_link_libraries(MysqlConnection_test sqlconn)
+
+add_executable(MysqlConnectionPool_test MysqlConnectionPool_test.cpp)
+target_link_libraries(MysqlConnectionPool_test sqlconn)

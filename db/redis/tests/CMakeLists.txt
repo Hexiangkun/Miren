@@ -1,0 +1,5 @@
+add_executable(RedisConn_test RedisConn_test.cpp)
+target_link_libraries(RedisConn_test redisconn)
+
+add_executable(Redis_test Redis_test.cpp)
+target_link_libraries(Redis_test hiredis)
