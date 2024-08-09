@@ -1,0 +1,5 @@
+add_executable(udp_chat_client udp_chat_client.cpp)
+target_link_libraries(udp_chat_client udp)
+
+add_executable(udp_chat_server udp_chat_server.cpp)
+target_link_libraries(udp_chat_server udp)
