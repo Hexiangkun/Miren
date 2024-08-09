@@ -1,0 +1,44 @@
+{
+  "server": {
+    "https": {
+      "enable": false,
+      "cert_file": "../ssl/cert.crt",
+      "private_key_file": "../ssl/rsa_private.key",
+      "password": ""
+    },
+    "port": 9999,
+    "timeout": 120,
+    "timerInterval": 5
+  },
+
+  "EventLoopThreadPool":{
+    "threadNum": 4
+  },
+
+  "log": {
+    "destination": "/root/webserver/log",
+    "filename": "basename",
+    "open": true,
+    "default_format": "%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%T[%p]%T[%c]%T%f:%l%T%m%n"
+  },
+
+  "mysql": {
+    "ip": "localhost",
+    "port": 3306,
+    "username": "root",
+    "password": "root",
+    "dbname": "yourdb",
+    "initSize": 10,
+    "maxSize": 1024,
+    "maxIdleTime": 30,
+    "connectionTimeout": 100
+  },
+  "redis": {
+    "ip": "localhost",
+    "port": 6379,
+    "initSize": 5
+  },
+  "resource": {
+    "path": "/root/resources"
+  }
+}
