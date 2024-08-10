@@ -56,6 +56,7 @@ add_subdirectory(config)
 add_subdirectory(net)
 
 add_subdirectory(third_party/kcpp)
+add_subdirectory(third_party/llhttp)
 add_subdirectory(http)
 # add_subdirectory(rpc)
 add_subdirectory(future)
