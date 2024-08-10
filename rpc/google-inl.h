@@ -37,7 +37,7 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 #include <google/protobuf/message.h>
-#include "log/Logging.h"
+#include "base/log/Logging.h"
 // When serializing, we first compute the byte size, then serialize the message.
 // If serialization produces a different number of bytes than expected, we
 // call this function, which crashes.  The problem could be due to a bug in the

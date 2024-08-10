@@ -1,7 +1,7 @@
 #pragma once
 
 #include "net/Buffer.h"
-#include "log/Logging.h"
+#include "base/log/Logging.h"
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace Miren

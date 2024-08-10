@@ -1,5 +1,5 @@
 #include "rpc/RpcChannel.h"
-#include "log/Logging.h"
+#include "base/log/Logging.h"
 #include "rpc/rpc.pb.h"
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
@@ -20,8 +20,8 @@ namespace net
 
         RpcChannel::RpcChannel(const TcpConnectionPtr& conn)
                     :codec_(std::bind(&RpcChannel::onRpcMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)),
-                    services_(nullptr),
-                    conn_(conn)
+                    conn_(conn),
+                    services_(nullptr)
         {
             LOG_INFO << "RpcChannel::ctor - " << this;
         }

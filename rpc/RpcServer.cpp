@@ -1,6 +1,6 @@
 #include "rpc/RpcServer.h"
 #include "rpc/RpcChannel.h"
-#include "log/Logging.h"
+#include "base/log/Logging.h"
 
 #include <google/protobuf/service.h>
 #include <google/protobuf/descriptor.h>
