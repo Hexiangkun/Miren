@@ -8,6 +8,32 @@ namespace Miren
 {
 namespace base
 {
+
+unsigned char hex2dec(char ch) {       //十六进制数转十进制数
+    if(ch >= '0' && ch <= '9') {
+        return (static_cast<unsigned char>(ch - '0'));
+    }
+    else if(ch >= 'a' && ch <= 'z') {
+        return (static_cast<unsigned char>(ch - 'a' + 10));     //a-f[10-15]
+    }
+    else if(ch >= 'A' && ch <= 'Z') {
+        return (static_cast<unsigned char>(ch - 'A' + 10));     //A-F[10-15]
+    }
+    return static_cast<unsigned char>(ch);
+}
+
+char dec2hex(char ch) {         //将ASCII中前0-15个数据转换为十六进制
+    if(ch >= 0 && ch <= 9) {
+        return (ch + '0');
+    }
+    else if(ch >= 10 && ch <= 15) {
+        return ch - 10 + 'A';
+    }
+    return ch;
+}
+
+
+
 std::string ToUpper(const std::string& name) {
     std::string rt = name;
     std::transform(rt.begin(), rt.end(), rt.begin(), ::toupper);

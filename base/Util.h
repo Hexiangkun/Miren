@@ -5,6 +5,9 @@ namespace Miren
 {
 namespace base
 {
+unsigned char hex2dec(char);        //十六进制数转十进制数
+char dec2hex(char);                 //十进制数转十六进制数
+
 
 std::string ToUpper(const std::string& name);
 
