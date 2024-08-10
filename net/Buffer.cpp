@@ -2,7 +2,6 @@
 #include "net/sockets/Endian.h"
 #include "net/sockets/SocketsOps.h"
 #include "base/Types.h"
-#include "base/log/Logging.h"
 #include <assert.h>
 #include <sys/uio.h>
 #include <errno.h>
@@ -266,7 +265,6 @@ namespace Miren
             struct iovec vec[2];
         read_again:
             const size_t writable = writableBytes();
-            // LOG_INFO << writable;
             vec[0].iov_base = begin()+writerIndex_;
             vec[0].iov_len = writableBytes();
             vec[1].iov_base = extrabuf;
