@@ -49,8 +49,6 @@ if(GTEST_FOUND)
     message(STATUS "found gtest")
 endif()
 
-
-
 add_subdirectory(base)
 add_subdirectory(config)
 add_subdirectory(net)
@@ -58,12 +56,7 @@ add_subdirectory(net)
 add_subdirectory(third_party/kcpp)
 add_subdirectory(third_party/llhttp)
 add_subdirectory(http)
-# add_subdirectory(rpc)
+add_subdirectory(rpc)
 add_subdirectory(future)
 add_subdirectory(example)
 add_subdirectory(db)
-# add_executable(main main.cpp)
-# target_link_libraries(main)
-
-# add_executable(testt test.cpp) 
-# target_link_libraries(testt http)
