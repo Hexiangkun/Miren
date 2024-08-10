@@ -53,10 +53,10 @@ public:
 
     void SaveUploadedFile(const BinaryData& file, const std::string& path, const std::string& filename);
     
-    void STRING(const HttpStatusCode& code, const std::string& data);
-    void JSON(const HttpStatusCode& code, const std::string& data);
-    void FILE(const HttpStatusCode& code, const std::string& filepath, std::string filename = "");
-    void MULTIPART(const HttpStatusCode& code, const std::vector<MultipartPart*>& parts);
+    void STRING(const llhttp_status& code, const std::string& data);
+    void JSON(const llhttp_status& code, const std::string& data);
+    void FILE(const llhttp_status& code, const std::string& filepath, std::string filename = "");
+    void MULTIPART(const llhttp_status& code, const std::vector<MultipartPart*>& parts);
 };
 
 

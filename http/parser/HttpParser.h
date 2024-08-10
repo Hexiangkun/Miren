@@ -1,162 +1,76 @@
-#pragma once
-
-#include "http/core/HttpCode.h"
+#include "third_party/llhttp/include/llhttp.h"
 #include "http/core/HttpRequest.h"
 #include "http/core/HttpResponse.h"
-#include "http/parser/HttpRequestParser.h"
-#include "http/parser/HttpResponseParser.h"
+#include <memory>
 
-namespace Miren {
-namespace http {
+namespace Miren
+{
+namespace http
+{
+//----- HTTP parser ---------
+class HttpParser {
+ public:
+  explicit HttpParser(llhttp_type type= llhttp_type::HTTP_REQUEST);
 
-/**
- * @brief HTTP请求解析类
- */
-class HttpRequestParser {
-public:
-    /// HTTP解析类的智能指针
-    typedef std::shared_ptr<HttpRequestParser> ptr;
+  HttpParser(const HttpParser&) = delete;
+  void operator=(const HttpParser&) = delete;
 
-    /**
-     * @brief 构造函数
-     */
-    HttpRequestParser();
+  bool execute(const std::string& data, size_t* offset = nullptr);
+  bool execute(const char* data, size_t len, size_t* offset = nullptr);
 
-    /**
-     * @brief 解析协议
-     * @param[in, out] data 协议文本内存
-     * @param[in] len 协议文本内存长度
-     * @return 返回实际解析的长度,并且将已解析的数据移除
-     */
-    size_t execute(char* data, size_t len);
+//   void SetRequestHandler(HttpRequestHandler h) { req_handler_ = std::move(h); }
+//   void SetResponseHandler(HttpResponseHandler h) { rsp_handler_ = std::move(h); }
 
-    /**
-     * @brief 是否解析完成
-     * @return 是否解析完成
-     */
-    int isFinished();
+  bool isRequest() const { return type_ == HTTP_REQUEST; }
+  bool isComplete() const { return complete_; }
+  bool isPause() const { return pause_; }
 
-    /**
-     * @brief 是否有错误
-     * @return 是否有错误
-     */
-    int hasError(); 
+  // assert IsRequest() && IsComplete()
+  std::unique_ptr<HttpRequest>& request() { return request_; }
 
-    /**
-     * @brief 返回HttpRequest结构体
-     */
-    std::unique_ptr<HttpRequest>& getData() { return m_data;}
+  // assert !IsRequest() && IsComplete()
+  std::unique_ptr<HttpResponse>& response() { return response_; }
 
-    /**
-     * @brief 设置错误
-     * @param[in] v 错误值
-     */
-    void setError(int v) { m_error = v;}
+  const std::string& errorReason() const { return error_reason_; }
 
-    /**
-     * @brief 获取消息体长度
-     */
-    uint64_t getContentLength();
+  // for unit test
+  void reinit();
+ private:
+  void reset();
+  void setLength(const char* data) { length_ = data; }
+  static int OnMessageBegin(llhttp_t* h);
+  static int OnMessageComplete(llhttp_t* h);
 
-    /**
-     * @brief 获取http_parser结构体
-     */
-    const http_request_parser& getParser() const { return m_parser;}
-public:
-    /**
-     * @brief 返回HttpRequest协议解析的缓存大小
-     */
-    static uint64_t GetHttpRequestBufferSize();
+  static int OnUrl(llhttp_t* h, const char* data, size_t len);
+  static int OnVersion(llhttp_t* h, const char* data, size_t len);
+  static int OnHeaderField(llhttp_t* h, const char* data, size_t len);
+  static int OnHeaderValue(llhttp_t* h, const char* data, size_t len);
+  static int OnHeadersComplete(llhttp_t* h);
+  static int OnStatus(llhttp_t* h, const char* data, size_t len);
+  static int OnBody(llhttp_t* h, const char* data, size_t len);
 
-    /**
-     * @brief 返回HttpRequest协议的最大消息体大小
-     */
-    static uint64_t GetHttpRequestMaxBodySize();
-private:
-    /// http_request_parser
-    http_request_parser m_parser;
-    /// HttpRequest结构
-    std::unique_ptr<HttpRequest> m_data;
-    /// 错误码
-    /// 1000: invalid method
-    /// 1001: invalid version
-    /// 1002: invalid field
-    int m_error;
+  static int OnUrlComplete(llhttp_t* h);
+  static int OnStatusComplete(llhttp_t* h);
+  static int OnHeaderFieldComplete(llhttp_t* h);
+  static int OnHeaderValueComplete(llhttp_t* h);
+
+  llhttp_t parser_;
+  llhttp_settings_t settings_;
+  bool complete_ = false;
+  bool pause_ = false;
+  const char* length_ = nullptr;
+  const llhttp_type type_;  // request or response
+  std::unique_ptr<HttpRequest> request_;
+  std::unique_ptr<HttpResponse> response_;
+
+  std::string key_, value_;  // temp vars for parse header
+  std::string error_reason_;
+
+//   HttpRequestHandler req_handler_;
+//   HttpResponseHandler rsp_handler_;
 };
 
-/**
- * @brief Http响应解析结构体
- */
-class HttpResponseParser {
-public:
-    /// 智能指针类型
-    typedef std::shared_ptr<HttpResponseParser> ptr;
 
-    /**
-     * @brief 构造函数
-     */
-    HttpResponseParser();
-
-    /**
-     * @brief 解析HTTP响应协议
-     * @param[in, out] data 协议数据内存
-     * @param[in] len 协议数据内存大小
-     * @param[in] chunck 是否在解析chunck
-     * @return 返回实际解析的长度,并且移除已解析的数据
-     */
-    size_t execute(char* data, size_t len, bool chunck);
-
-    /**
-     * @brief 是否解析完成
-     */
-    int isFinished();
-
-    /**
-     * @brief 是否有错误
-     */
-    int hasError(); 
-
-    /**
-     * @brief 返回HttpResponse
-     */
-    std::unique_ptr<HttpResponse>& getData() { return m_data;}
-
-    /**
-     * @brief 设置错误码
-     * @param[in] v 错误码
-     */
-    void setError(int v) { m_error = v;}
-
-    /**
-     * @brief 获取消息体长度
-     */
-    uint64_t getContentLength();
-
-    /**
-     * @brief 返回httpclient_parser
-     */
-    const http_response_parser& getParser() const { return m_parser;}
-public:
-    /**
-     * @brief 返回HTTP响应解析缓存大小
-     */
-    static uint64_t GetHttpResponseBufferSize();
-
-    /**
-     * @brief 返回HTTP响应最大消息体大小
-     */
-    static uint64_t GetHttpResponseMaxBodySize();
-private:
-    /// http_response_parser
-    http_response_parser m_parser;
-    /// HttpResponse
-    std::unique_ptr<HttpResponse> m_data;
-    /// 错误码
-    /// 1001: invalid version
-    /// 1002: invalid field
-    int m_error;
-};
-
+struct Url ParseUrl(const std::string& url);
 }
 }
-

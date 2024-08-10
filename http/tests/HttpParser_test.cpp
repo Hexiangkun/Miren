@@ -6,89 +6,43 @@ const char test_request_data[] = "GET https://translate.google.cn/?sl=zh-CN&tl=e
                                 "Cookie: JSESSIONID=0000AgK4N-vgetNoKBOfYd_hJQP:-1; ECSNSessionID=721303315959898497; ASPSESSIONIDQQSCRBSQ=OMFFMGDCJHLLHCLPGMKCEOEG; ASPSESSIONIDCCCRTRDD=KMENDGIBFBKFDLHKKPJGJNMF\r\n"
                                 "\r\n";
 
-const char test_requ_data[] = "POST /api/sayhi HTTP/1.1\r\n"
-"user-agent: vscode-restclient\r\n"
-"content-type: application/x-www-form-urlencoded\r\n"
-"accept-encoding: gzip, deflate\r\n"
-"content-length: 26\r\n"
-"Host: 127.0.0.1:8000\r\n"
-"Connection: close\r\n"
-"\r\n"
-"name=foo&age=18&hobby=paly";
-
-
-
-std::string data = "------WebKitFormBoundaryKPjN0GYtWEjAni5F\r\n"
-                    "Content-Disposition: form-data; name=\"username\"\r\n"
-                    "Content-Type: multipart/form-data\r\n"
+const char* data = "POST / HTTP/1.1\r\n"
+                    "Host: www.example.com\r\n"
+                    "Content-Type: application/x-www-form-urlencoded\r\n"
+                    "Content-Length: 4\r\n"
+                    "Connection: close\r\n"
                     "\r\n"
-                    "130533193203240022\r\n"
-                    "------WebKitFormBoundaryKPjN0GYtWEjAni5F\r\n"
-                    "Content-Disposition: form-data; name=\"password\"\r\n"
-                    "Content-Type: multipart/form-data\r\n"
-                    "\r\n"
-                    "qwerqwer\r\n"
-                    "------WebKitFormBoundaryKPjN0GYtWEjAni5F\r\n"
-                    "Content-Disposition: form-data; name=\"captchaId\"\r\n"
-                    "Content-Type: multipart/form-data\r\n"
-                    "\r\n"
-                    "img_captcha_7d96b3cd-f873-4c36-8986-584952e38f20\r\n"
-                    "------WebKitFormBoundaryKPjN0GYtWEjAni5F\r\n"
-                    "Content-Disposition: form-data; name=\"captchaWord\"\r\n"
-                    "Content-Type: multipart/form-data\r\n"
-                    "\r\n"
-                    "rdh5\r\n"
-                    "------WebKitFormBoundaryKPjN0GYtWEjAni5F\r\n"
-                    "Content-Disposition: form-data; name=\"_csrf\"\r\n"
-                    "Content-Type: multipart/form-data\r\n"
-                    "\r\n"
-                    "200ea95d-90e9-4789-9e0b-435a6dd8b57b\r\n"
-                    "------WebKitFormBoundaryKPjN0GYtWEjAni5F--\r\n";
-
-const std::string multi_data = "POST http://www.example.com HTTP/1.1\r\n"
-                                "Content-Type:multipart/form-data; boundary=----WebKitFormBoundaryyb1zYhTI38xpQxBK\r\n"
-                                "\r\n"
-                                "------WebKitFormBoundaryyb1zYhTI38xpQxBK\r\n"
-                                "Content-Disposition: form-data; name=\"city_id\"\r\n"
-                                "\r\n"
-                                "1\r\n"
-                                "\r\n"
-                                "------WebKitFormBoundaryyb1zYhTI38xpQxBK\r\n"
-                                "Content-Disposition: form-data; name=\"company_id\"\r\n"
-                                "\r\n"
-                                "2\r\n"
-                                "------WebKitFormBoundaryyb1zYhTI38xpQxBK\r\n"
-                                "Content-Disposition: form-data; name=\"file\"; filename=\"chrome.png\"\r\n"
-                                "Content-Type: image/png\r\n"
-                                "\r\n"
-                                "PNG ... content of chrome.png ...\r\n"
-                                "------WebKitFormBoundaryyb1zYhTI38xpQxBK--\r\n";
+                    "q=4";
 
 void test_request() {
-    Miren::http::HttpRequestParser parser;
-    std::string tmp = test_requ_data;
-    size_t s = parser.execute(&tmp[0], tmp.size());
-    std::cout << "execute rt=" << s
-        << " has_error=" << parser.hasError()
-        << " is_finished=" << parser.isFinished()
-        << " total=" << tmp.size()
-        << " content_length=" << parser.getContentLength() << std::endl;
+    Miren::http::HttpParser parser;
+    std::string tmp = data;
+    size_t offset = 0;
+    size_t s = parser.execute(&tmp[0], tmp.size(), &offset);
+    std::cout << "execute rt=" << s << std::endl
+        << " has_error=" << parser.errorReason() << std::endl
+        << " is_finished=" << parser.isComplete() << std::endl
+        << " is paused=" << parser.isPause() << std::endl
+        << " total=" << tmp.size() << std::endl
+        << " offset=" << offset << std::endl;
+    tmp += "0";
+    Miren::http::HttpParser parser1;
+    offset = 0;
+        s = parser1.execute(&tmp[0], tmp.size(), &offset);
+        std::cout << "execute rt=" << s << std::endl
+        << " has_error=" << parser1.errorReason() << std::endl
+        << " is_finished=" << parser1.isComplete() << std::endl
+        << " is paused=" << parser1.isPause() << std::endl
+        << " total=" << tmp.size() << std::endl
+        << " offset=" << offset << std::endl;
+    std::cout << parser1.request()->toString();
+    std::cout << std::endl << "------------" << std::endl;
+    auto& req = parser1.request();
+    std::cout << req->getHeader("cookie") << std::endl;
+    std::cout << req->getHeader("content-length") << std::endl;
+    std::cout << req->getParam("sl") << std::endl;
+    std::cout << req->getParam("text") << std::endl;
 
-    std::cout << parser.getData()->toString() << std::endl;
-    // std::cout << tmp << std::endl << std::endl;
-    // std::cout << parser.getData()->getHeader("Content-type") << std::endl;
-    auto req = std::move(parser.getData());
-    std::cout << (req!=nullptr) << std::endl;
-    // std::cout << Miren::http::HttpMethodToString(req->getMethod()) << std::endl;
-    std::cout << req->getParamAs<std::string>("name", "s") << std::endl;
-    std::cout << req->getParamAs<int>("age", 0) << std::endl;
-    std::cout << req->getParamAs<std::string>("hobby", "nihao") << std::endl;
-
-    // std::cout << req->getQuery() << std::endl;
-    // std::cout << req->getParam("text") << std::endl;
-    // std::cout << req->getParam("sl") << std::endl;
-    // std::cout << req->getCookie("JSESSIONID") << std::endl;
-    // std::cout << (req->getVersionStr()) << std::endl;
 }
 
 const char test_response_data[] = "HTTP/1.1 200 OK\r\n"
@@ -107,21 +61,15 @@ const char test_response_data[] = "HTTP/1.1 200 OK\r\n"
         "</html>\r\n";
 
 void test_response() {
-    Miren::http::HttpResponseParser parser;
+    Miren::http::HttpParser parser(llhttp_type::HTTP_RESPONSE);
     std::string tmp = test_response_data;
-    size_t s = parser.execute(&tmp[0], tmp.size(), true);
+    size_t s = parser.execute(&tmp[0], tmp.size());
     std::cout << "execute rt=" << s
-        << " has_error=" << parser.hasError()
-        << " is_finished=" << parser.isFinished()
-        << " total=" << tmp.size()
-        << " content_length=" << parser.getContentLength()
-        << " tmp[s]=" << tmp[s] << std::endl;
+        << " has_error=" << parser.errorReason()
+        << " is_finished=" << parser.isComplete()
+        << " total=" << tmp.size();
 
-    tmp.resize(tmp.size() - s);
-
-    std::cout << parser.getData()->toString() << std::endl;
-    std::cout << parser.getData()->getHeader("Content-Type") << std::endl;
-    std::cout << tmp << std::endl;
+    std::cout << parser.response()->toString() << std::endl;
 }
 
 int main(int argc, char** argv) {

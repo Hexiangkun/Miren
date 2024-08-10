@@ -23,11 +23,11 @@ int main() {
     });
     //普通get请求
     c.GET("/api/sayhi", [](std::shared_ptr<HttpContext> c){
-        c->STRING(HttpStatusCode::OK, "hi, welcome to cweb");
+        c->STRING(HTTP_STATUS_OK, "hi, welcome to cweb");
     });
     //表单数据请求
     c.POST("api/sayhi", [](std::shared_ptr<HttpContext> c){
-        c->STRING(HttpStatusCode::OK, "hi, " + c->PostForm("name") + "/" + c->PostForm("age") + "/" + c->PostForm("hobby") + ",welcome to cweb");
+        c->STRING(HTTP_STATUS_OK, "hi, " + c->PostForm("name") + "/" + c->PostForm("age") + "/" + c->PostForm("hobby") + ",welcome to cweb");
     });
     
     // 上传multipart
@@ -36,11 +36,11 @@ int main() {
         if(part1) {
             BinaryData data(part1->data().c_str(), part1->data().size());
             std::string filename = part1->filename();
-            c->SaveUploadedFile(data, "/root/hxk/server/resources/", "tmp"+filename);
-            c->STRING(HttpStatusCode::OK, "I received your data : " + part1->name());
+            c->SaveUploadedFile(data, "/root/hxk/server/", "tmp"+filename);
+            c->STRING(HTTP_STATUS_OK, "I received your data : " + part1->name());
         }
         else {
-            c->STRING(HttpStatusCode::OK, "Your request is error");
+            c->STRING(HTTP_STATUS_OK, "Your request is error");
         }
     });
     
@@ -64,26 +64,26 @@ int main() {
         std::unique_ptr<Json::StreamWriter> jsonWriter(writerBuilder.newStreamWriter());
         jsonWriter->write(root, &body);
         
-        c->JSON(HttpStatusCode::OK, body.str());
+        c->JSON(HTTP_STATUS_OK, body.str());
     });
     
     //带参数请求 ?key=value
     c.GET("api/echo", [](std::shared_ptr<HttpContext> c){
-        c->STRING(HttpStatusCode::OK, "hi, " + c->Query("name") + ",welcome to cweb");
+        c->STRING(HTTP_STATUS_OK, "hi, " + c->Query("name") + ",welcome to cweb");
     });
     
     //动态路由
     c.GET("/api/dynamic/:param", [](std::shared_ptr<HttpContext> c) {
-        c->STRING(HttpStatusCode::OK, "I got your param: " + c->RouterParam("param"));
+        c->STRING(HTTP_STATUS_OK, "I got your param: " + c->RouterParam("param"));
     });
     
     //文件下载
     c.GET("/api/download/city", [](std::shared_ptr<HttpContext> c) {
-        c->FILE(HttpStatusCode::OK, "/root/hxk/server/resources/city1.jpg");
+        c->FILE(HTTP_STATUS_OK, "/root/hxk/server/resources/city1.jpg");
     });
     
     c.GET("/api/download/bluesky", [](std::shared_ptr<HttpContext> c) {
-        c->FILE(HttpStatusCode::OK, "/root/hxk/server/resources/bluesky.mp4");
+        c->FILE(HTTP_STATUS_OK, "/root/hxk/server/resources/bluesky.mp4");
     });
     
     //multipart数据
@@ -106,7 +106,7 @@ int main() {
         part3->setContentType("image/jpeg");
         part3->setImage("/root/hxk/server/resources/city1.jpg");
         
-        c->MULTIPART(HttpStatusCode::OK, std::vector<MultipartPart *>{part1, part2, part3});
+        c->MULTIPART(HTTP_STATUS_OK, std::vector<MultipartPart *>{part1, part2, part3});
         delete part1;
         delete part2;
         delete part3;
@@ -128,7 +128,7 @@ int main() {
     //         res["type"] = "redis cache";
     //         res["data"] = rr->str;
     //         jsonWriter->write(res, &data);
-    //         c->JSON(HttpStatusCode::OK, data.str().c_str());
+    //         c->JSON(HTTP_STATUS_OK, data.str().c_str());
     //         return;
     //     }
         
@@ -151,13 +151,13 @@ int main() {
     //     jsonWriter->write(res1, &data);
     //     c->Redis()->Cmd("SET /api/mysql/data %s PX %d", data.str().c_str(), 10 * 1000);
 
-    //     c->JSON(HttpStatusCode::OK, data.str());
+    //     c->JSON(HTTP_STATUS_OK, data.str());
     // });
     
     //redis
     // c.GET("/api/redis/data", [](std::shared_ptr<HttpContext> c) {
     //     RedisReplyPtr r = c->Redis()->Cmd("GET key_htl_hlea_tlyyyy_ghhtl_aseghlea");
-    //     c->STRING(HttpStatusCode::OK, r->str);
+    //     c->STRING(HTTP_STATUS_OK, r->str);
     // });
     
     //redis lock
@@ -167,9 +167,9 @@ int main() {
     //     static std::string key = "lockkey-" + std::to_string(time.tv_nsec);
     //     std::string value = c->Redis()->Lock(key, 600 * 1000);
     //     if(value.size() > 0) {
-    //         c->STRING(HttpStatusCode::OK, "lock success key:" + key + "value:" + value);
+    //         c->STRING(HTTP_STATUS_OK, "lock success key:" + key + "value:" + value);
     //     }else {
-    //         c->STRING(HttpStatusCode::OK, "lock failed key:" + key);
+    //         c->STRING(HTTP_STATUS_OK, "lock failed key:" + key);
     //     }
     // });
     
@@ -177,9 +177,9 @@ int main() {
     //     LOG(LOGLEVEL_DEBUG, CWEB_MODULE, "redis", "key: %s value: %s", c->Param("key").c_str(), c->Param("value").c_str());
     //     bool res = c->Redis()->Unlock(c->Param("key"), c->Param("value"));
     //     if(res) {
-    //         c->STRING(HttpStatusCode::OK, "unlock success");
+    //         c->STRING(HTTP_STATUS_OK, "unlock success");
     //     }else {
-    //         c->STRING(HttpStatusCode::OK, "unlock failed");
+    //         c->STRING(HTTP_STATUS_OK, "unlock failed");
     //     }
     // });
     
@@ -192,7 +192,7 @@ int main() {
     // });
     
     // g1->GET("/sayhi", [](std::shared_ptr<HttpContext> c){
-    //     c->STRING(HttpStatusCode::OK, "hi, welcome to cweb group");
+    //     c->STRING(HTTP_STATUS_OK, "hi, welcome to cweb group");
     // });
 }
 

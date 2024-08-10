@@ -1,6 +1,7 @@
 #pragma once
 
-#include "http/core/HttpCode.h"
+#include "third_party/llhttp/include/llhttp.h"
+#include "http/core/HttpUtil.h"
 #include <memory>
 #include <map>
 #include <string>
@@ -27,86 +28,102 @@ public:
      */
     HttpResponse(HttpVersion version = HttpVersion::HTTP_1_0, bool close = true);
 
+    void reset();
+
     /**
      * @brief 返回响应状态
      * @return 请求状态
      */
-    HttpStatusCode getStatus() const { return m_status;}
-
-    /**
-     * @brief 返回响应版本
-     * @return 版本
-     */
-    HttpVersion getVersion() const { return m_version;}
-    std::string getVersionStr() const { return HttpVersionToString(m_version); }
-
-    /**
-     * @brief 返回响应消息体
-     * @return 消息体
-     */
-    const std::string& getBody() const { return m_body;}
-
-    /**
-     * @brief 返回响应原因
-     */
-    const std::string& getReason() const { return m_reason;}
-
-    /**
-     * @brief 返回响应头部MAP
-     * @return MAP
-     */
-    const MapType& getHeaders() const { return m_headers;}
+    llhttp_status getStatusCode() const { return status_code_; }
+    std::string getStatusCodeString() const { return llhttp_status_name(status_code_); }
 
     /**
      * @brief 设置响应状态
      * @param[in] v 响应状态
      */
-    void setStatus(HttpStatusCode v) { m_status = v;}
+    void setStatusCode(llhttp_status v) { status_code_ = v;}
+
+    /**
+     * @brief 返回响应版本
+     * @return 版本
+     */
+    HttpVersion getVersion() const { return version_;}
+    std::string getVersionStr() const { return HttpVersionToString(version_); }
+    void setVersion(const HttpVersion& v) { version_ = v; }
+    void setVersion(const std::string& ver) {
+        version_ = HTTP_1_0;
+        if(ver == "1.1") version_ = HTTP_1_1;
+        else if(ver == "1.0") version_ = HTTP_1_0;
+        else if(ver == "2.0") version_ = HTTP_2_0;
+    }
+    void setVersion(const char* v, size_t len) { setVersion(std::string(v, len)); }
 
     /**
      * @brief 设置响应版本
      * @param[in] v 版本
      */
-    // void setVersion(uint8_t v) { m_version = v;}
-    void setVersion(HttpVersion ver) { m_version = ver; }
+    // void setVersion(uint8_t v) { version_ = v;}
+    void setVersion(HttpVersion ver) { version_ = ver; }
     
+    /**
+     * @brief 返回响应消息体
+     * @return 消息体
+     */
+    const std::string& getBody() const { return body_;}
+
     /**
      * @brief 设置响应消息体
      * @param[in] v 消息体
      */
-    void setBody(const std::string& v) { m_body = v;}
+    void setBody(const std::string& v) { body_ = v;}
+    void appendBody(const std::string& body) { body_ += body; }
+    void appendBody(const char* body, size_t len) { body_.append(body, len); }
+
+
+    /**
+     * @brief 返回响应原因
+     */
+    const std::string& getReason() const { return status_reason_;}
 
     /**
      * @brief 设置响应原因
      * @param[in] v 原因
      */
-    void setReason(const std::string& v) { m_reason = v;}
+    void setStatusReason(const std::string& v) { status_reason_ = v;}
+    void appendStatusReason(const std::string& reason) { status_reason_ += reason; }
+    void appendStatusReason(const char* reason, size_t len) { status_reason_.append(reason, len); }
+
+    /**
+     * @brief 返回响应头部MAP
+     * @return MAP
+     */
+    const MapType& getHeaders() const { return headers_;}
 
     /**
      * @brief 设置响应头部MAP
      * @param[in] v MAP
      */
-    void setHeaders(const MapType& v) { m_headers = v;}
+    void setHeaders(const MapType& v) { headers_ = v;}
 
     /**
      * @brief 是否自动关闭
      */
-    bool isClose() const { return m_close;}
+    bool isClose() const { return close_;}
 
     /**
      * @brief 设置是否自动关闭
      */
-    void setClose(bool v) { m_close = v;}
+    void setClose(bool v) { close_ = v;}
 
     /**
      * @brief 是否websocket
      */
-    bool isWebsocket() const { return m_websocket;}
+    bool isWebsocket() const { return websocket_;}
 
     /**
      * @brief 设置是否websocket
      */
-    void setWebsocket(bool v) { m_websocket = v;}
+    void setWebsocket(bool v) { websocket_ = v;}
 
     /**
      * @brief 获取响应头部参数
@@ -139,7 +156,7 @@ public:
      */
     template<class T>
     bool checkGetHeaderAs(const std::string& key, T& val, const T& def = T()) {
-        return checkGetAs(m_headers, key, val, def);
+        return checkGetAs(headers_, key, val, def);
     }
 
     /**
@@ -151,7 +168,7 @@ public:
      */
     template<class T>
     T getHeaderAs(const std::string& key, const T& def = T()) {
-        return getAs(m_headers, key, def);
+        return getAs(headers_, key, def);
     }
 
     /**
@@ -173,22 +190,21 @@ public:
                    const std::string& domain = "", bool secure = false);
 private:
     /// 响应状态
-    HttpStatusCode m_status;
+    llhttp_status status_code_;
     /// 版本
-    HttpVersion m_version;
-    // uint8_t m_version;
+    HttpVersion version_;
     /// 是否自动关闭
-    bool m_close;
+    bool close_;
     /// 是否为websocket
-    bool m_websocket;
+    bool websocket_;
     /// 响应消息体
-    std::string m_body;
+    std::string body_;
     /// 响应原因
-    std::string m_reason;
+    std::string status_reason_;
     /// 响应头部MAP
-    MapType m_headers;
+    MapType headers_;
 
-    std::vector<std::string> m_cookies;
+    std::vector<std::string> cookies_;
 };
 
 /**

@@ -63,7 +63,7 @@ bool benchmark = false;
 
 void test(std::shared_ptr<HttpSession> session)
 {
-  session->sendString(HttpStatusCode::OK, "nihao\r\n");
+  session->sendString(HTTP_STATUS_OK, "nihao\r\n");
   if (session->getRequest()->isClose())
   {
     session->connection_->shutdown();

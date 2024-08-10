@@ -18,11 +18,11 @@ HttpContext::~HttpContext() {
 }
 
 std::string HttpContext::Method() const {
-  return HttpMethodToString(session_->getRequest()->getMethod());
+  return session_->getRequest()->methodString();
 }
 
 const std::string& HttpContext::Path() const {
-  return session_->getRequest()->getPath();
+  return session_->getRequest()->getRequestUrl().path;
 }
 
 std::string HttpContext::RouterParam(const std::string& key, const std::string& def) {
@@ -43,7 +43,7 @@ std::string HttpContext::PostForm(const std::string &key, const std::string& def
 
 std::shared_ptr<MultipartPart> HttpContext::MultipartForm(const std::string& key, size_t idx) const {
     try{
-        return std::dynamic_pointer_cast<HttpRequestMultipartBody>(session_->getRequest()->getRequestBody())->getFormFile(key, idx);
+        return std::dynamic_pointer_cast<HttpRequestMultipartBody>(session_->getRequest()->mutlipartBody())->getFormFile(key, idx);
     }
     catch(std::exception&) {
 
@@ -53,7 +53,7 @@ std::shared_ptr<MultipartPart> HttpContext::MultipartForm(const std::string& key
 
 const Json::Value HttpContext::JsonValue() const {
     try{
-        return std::dynamic_pointer_cast<HttpRequestJsonBody>(session_->getRequest()->getRequestBody())->jsonValue();
+        return std::dynamic_pointer_cast<HttpRequestJsonBody>(session_->getRequest()->mutlipartBody())->jsonValue();
     }
     catch(std::exception&) {
 
@@ -81,16 +81,16 @@ void HttpContext::SaveUploadedFile(const BinaryData &file, const std::string &pa
 // }
 
 
-void HttpContext::STRING(const HttpStatusCode& code, const std::string& data) {
+void HttpContext::STRING(const llhttp_status& code, const std::string& data) {
     session_->sendString(code, data);
 }
 
-void HttpContext::JSON(const HttpStatusCode& code, const std::string& data) {
+void HttpContext::JSON(const llhttp_status& code, const std::string& data) {
     session_->sendJson(code, data);
 }
 
 //单文件传输
-void HttpContext::FILE(const HttpStatusCode& code, const std::string &filepath, std::string filename) {
+void HttpContext::FILE(const llhttp_status& code, const std::string &filepath, std::string filename) {
     session_->sendFile(code, filepath, filename);
 }
 
@@ -106,7 +106,7 @@ Content-Type: image/jpeg
 
 <JPEG file data>
 ------BOUNDARY_STRING--*/
-void HttpContext::MULTIPART(const HttpStatusCode& code, const std::vector<MultipartPart *>& parts) {
+void HttpContext::MULTIPART(const llhttp_status& code, const std::vector<MultipartPart *>& parts) {
     session_->sendMultipart(code, parts);
 }
 

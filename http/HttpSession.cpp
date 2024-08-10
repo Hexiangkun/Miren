@@ -20,23 +20,27 @@ HttpSession::~HttpSession() {
     http_response_.reset();
 }
 
-bool HttpSession::parse(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime)
+bool HttpSession::parse(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime, bool* flag)
 {
-    return handleMessage(buf, receivetime);
+    return handleMessage(buf, receivetime, flag);
 }
 
-bool HttpSession::handleMessage(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime) 
+bool HttpSession::handleMessage(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime,  bool* flag) 
 {
-    HttpRequestParser http_request_parser_;
-    auto req_str = buf->retrieveAllAsString();
-    size_t s = http_request_parser_.execute(req_str.data(), req_str.size());
+    HttpParser http_request_parser_;
+    size_t offset = 0;
+    size_t s = http_request_parser_.execute(buf->peek(), buf->readableBytes(), &offset);
     LOG_INFO << s;
-    if(http_request_parser_.isFinished() != 1 || s != req_str.size()) {
+    if(http_request_parser_.isPause()) {
+        *flag = true;
+        return false;
+    }
+    if(!http_request_parser_.isComplete()) {
         return false;
     }
     else {
-        http_request_ = std::move(http_request_parser_.getData());
-        LOG_INFO <<( http_request_parser_.getData() == nullptr);
+        buf->retrieve(offset);
+        http_request_ = std::move(http_request_parser_.request());
         http_request_->init();
         return true;
     }
@@ -63,9 +67,9 @@ void HttpSession::handleParsedMessage() {
 
 }
 
-void HttpSession::sendString(const HttpStatusCode& code, const std::string& data) {
+void HttpSession::sendString(const llhttp_status& code, const std::string& data) {
     http_response_.reset(new HttpResponse(http_request_->getVersion(), http_request_->isClose()));
-    http_response_->setStatus(code);
+    http_response_->setStatusCode(code);
 
     http_response_->setHeader("Content-Type", HttpContentType2Str.at(HttpContentType::TXT));
     // http_response_->setBody(data);
@@ -79,10 +83,10 @@ void HttpSession::sendString(const HttpStatusCode& code, const std::string& data
     LOG_INFO << bdata->remain();
 }
 
-void HttpSession::sendJson(const HttpStatusCode& code, const std::string& data) {
+void HttpSession::sendJson(const llhttp_status& code, const std::string& data) {
     http_response_.reset(new HttpResponse(http_request_->getVersion(), http_request_->isClose()));
 
-    http_response_->setStatus(code);
+    http_response_->setStatusCode(code);
     http_response_->setHeader("Content-Type", HttpContentType2Str.at(HttpContentType::JSON));
     http_response_->setBody(data);
  
@@ -92,7 +96,7 @@ void HttpSession::sendJson(const HttpStatusCode& code, const std::string& data) 
     send(bdata);
 }
 
-void HttpSession::sendFile(const HttpStatusCode& code, const std::string& filepath, const std::string& file_name) {
+void HttpSession::sendFile(const llhttp_status& code, const std::string& filepath, const std::string& file_name) {
     std::string filename = file_name;
     if(file_name.size() == 0) {
         size_t pos = filepath.find_last_of('/');
@@ -113,7 +117,7 @@ void HttpSession::sendFile(const HttpStatusCode& code, const std::string& filepa
 
     http_response_.reset(new HttpResponse(http_request_->getVersion(), http_request_->isClose()));
 
-    http_response_->setStatus(code);
+    http_response_->setStatusCode(code);
     http_response_->setHeader("Content-Type", cotent_filetype);
     http_response_->setHeader("Content-Disposition", "attachment; filename=" + filename);
 
@@ -129,12 +133,12 @@ void HttpSession::sendFile(const HttpStatusCode& code, const std::string& filepa
     send(bdata);
 }
 
-void HttpSession::sendMultipart(const HttpStatusCode& code, const std::vector<MultipartPart*>& parts) 
+void HttpSession::sendMultipart(const llhttp_status& code, const std::vector<MultipartPart*>& parts) 
 {
     http_response_.reset(new HttpResponse(http_request_->getVersion(), http_request_->isClose()));
 
     std::string boundary = generateBoundary(16);
-    http_response_->setStatus(code);
+    http_response_->setStatusCode(code);
     http_response_->setHeader("Content-Type", HttpContentType2Str.at(HttpContentType::MULTIPART) + "; boundary=" + boundary);
     
     std::string begin_boundary = "\r\n--" + boundary + "\r\n";

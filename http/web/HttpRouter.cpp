@@ -51,7 +51,7 @@ void HttpRouter::handle(std::shared_ptr<HttpContext> c)
     c->Next();
   }else {
       LOG_INFO <<  "router 请求未命中路由: " << c->Path();
-      c->STRING(HttpStatusCode::NOT_FOUND, "NOT FOUND!");
+      c->STRING(llhttp_status::HTTP_STATUS_NOT_FOUND, "NOT FOUND!");
   }
 }
 

@@ -1,5 +1,5 @@
 set(http_SRCS
-    HttpCode.cpp
+    HttpUtil.cpp
     HttpMultipart.cpp
     HttpRequest.cpp
     HttpResponse.cpp)

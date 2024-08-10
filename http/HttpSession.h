@@ -6,10 +6,10 @@
 #include "http/ByteData.h"
 #include "http/parser/HttpParser.h"
 #include "http/core/HttpMultipart.h"
-#include "http/core/HttpCode.h"
+#include "http/core/HttpUtil.h"
 #include "http/core/HttpRequest.h"
 #include "http/core/HttpResponse.h"
-
+#include "third_party/llhttp/include/llhttp.h"
 
 namespace Miren {
 namespace http {
@@ -24,14 +24,14 @@ public:
     std::unique_ptr<HttpResponse>& getResponse() { return http_response_; }
 
     void setRequestCallback(RequestCallback cb) { requestCallback_ = std::move(cb); }
-    bool parse(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime);
-    void sendString(const HttpStatusCode& code, const std::string& data);
-    void sendJson(const HttpStatusCode& code, const std::string& data);
-    void sendFile(const HttpStatusCode& code, const std::string& filepath,  const std::string& filename);
+    bool parse(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime, bool* flag);
+    void sendString(const llhttp_status& code, const std::string& data);
+    void sendJson(const llhttp_status& code, const std::string& data);
+    void sendFile(const llhttp_status& code, const std::string& filepath,  const std::string& filename);
     //void SendMedia(HttpStatusCode code, const std::string& filepath, //type)
     //void SendBinary()
     //void SendHtml();
-    void sendMultipart(const HttpStatusCode& code, const std::vector<MultipartPart*>& parts);
+    void sendMultipart(const llhttp_status& code, const std::vector<MultipartPart*>& parts);
     void send(ByteData* data);
 
 
@@ -42,7 +42,7 @@ private:
     std::unique_ptr<HttpRequest> http_request_;
     std::unique_ptr<HttpResponse> http_response_;
     bool need_close_ = true;
-    bool handleMessage(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime);
+    bool handleMessage(Miren::net::Buffer* buf, Miren::base::Timestamp receivetime, bool* flag);
 public:
     void handleParsedMessage();
     std::string generateBoundary(size_t len);

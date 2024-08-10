@@ -7,27 +7,27 @@ namespace http
 {
 
 HttpResponse::HttpResponse(HttpVersion version, bool close)
-    :m_status(HttpStatusCode::OK)
-    ,m_version(version)
-    ,m_close(close)
-    ,m_websocket(false) {
+    :status_code_(llhttp_status::HTTP_STATUS_OK)
+    ,version_(version)
+    ,close_(close)
+    ,websocket_(false) {
 }
 
 std::string HttpResponse::getHeader(const std::string& key, const std::string& def) const {
-    auto it = m_headers.find(key);
-    return it == m_headers.end() ? def : it->second;
+    auto it = headers_.find(key);
+    return it == headers_.end() ? def : it->second;
 }
 
 void HttpResponse::setHeader(const std::string& key, const std::string& val) {
-    m_headers[key] = val;
+    headers_[key] = val;
 }
 
 void HttpResponse::delHeader(const std::string& key) {
-    m_headers.erase(key);
+    headers_.erase(key);
 }
 
 void HttpResponse::setRedirect(const std::string& uri) {
-    m_status = HttpStatusCode::FOUND;
+    status_code_ = llhttp_status::HTTP_STATUS_NOT_FOUND;
     setHeader("Location", uri);
 }
 
@@ -48,7 +48,7 @@ void HttpResponse::setCookie(const std::string& key, const std::string& val,
     if(secure) {
         ss << ";secure";
     }
-    m_cookies.push_back(ss.str());
+    cookies_.push_back(ss.str());
 }
 
 
@@ -60,55 +60,40 @@ std::string HttpResponse::toString() const {
 
 std::string HttpResponse::headerToString() const {
     std::stringstream ss;
-    ss << HttpVersionToString(m_version)
+    ss << HttpVersionToString(version_)
        << " "
-       << (uint32_t)m_status
+       << (uint32_t)status_code_
        << " "
-       << (m_reason.empty() ? HttpStatusToString(m_status) : m_reason)
+       << (status_reason_.empty() ? getStatusCodeString() : status_reason_)
        << "\r\n";
-    for(auto& i : m_headers) {
-        if(!m_websocket && strcasecmp(i.first.c_str(), "connection") == 0) {
-            continue;
-        }
+    
+    for(auto& i : headers_) {
         ss << i.first << ": " << i.second << "\r\n";
     }
-    for(auto& i : m_cookies) {
+    for(auto& i : cookies_) {
         ss << "Set-Cookie: " << i << "\r\n";
     }
-    if(!m_websocket) {
-        ss << "connection: " << (m_close ? "close" : "keep-alive") << "\r\n";
-    }
-    if(!m_body.empty()) {
-        ss << "content-length: " << m_body.size() << "\r\n\r\n";
-    } else {
-        ss << "\r\n";
-    }
+    ss << "\r\n";
     return ss.str();
 }
 
 std::ostream& HttpResponse::dump(std::ostream& os) const {
-    os << HttpVersionToString(m_version)
+    os << HttpVersionToString(version_)
        << " "
-       << (uint32_t)m_status
+       << (uint32_t)status_code_
        << " "
-       << (m_reason.empty() ? HttpStatusToString(m_status) : m_reason)
+       << (status_reason_.empty() ? getStatusCodeString() : status_reason_)
        << "\r\n";
 
-    for(auto& i : m_headers) {
-        if(!m_websocket && strcasecmp(i.first.c_str(), "connection") == 0) {
-            continue;
-        }
+    for(auto& i : headers_) {
         os << i.first << ": " << i.second << "\r\n";
     }
-    for(auto& i : m_cookies) {
+    for(auto& i : cookies_) {
         os << "Set-Cookie: " << i << "\r\n";
     }
-    if(!m_websocket) {
-        os << "connection: " << (m_close ? "close" : "keep-alive") << "\r\n";
-    }
-    if(!m_body.empty()) {
-        os << "content-length: " << m_body.size() << "\r\n\r\n"
-           << m_body;
+
+    if(!body_.empty()) {
+        os << body_;
     } else {
         os << "\r\n";
     }
@@ -119,6 +104,21 @@ std::ostream& operator<<(std::ostream& os, const HttpResponse& rsp) {
     return rsp.dump(os);
 }
 
+
+// HTTP response
+void HttpResponse::reset() {
+  status_code_ = llhttp_status::HTTP_STATUS_OK;
+  status_reason_.clear();
+  headers_.clear();
+  body_.clear();
+}
+
+// void HttpResponse::Swap(HttpResponse& other) {
+//   std::swap(code_, other.code_);
+//   status_code_.swap(other.status_code_);
+//   headers_.swap(other.headers_);
+//   body_.swap(other.body_);
+// }
 } // namespace http
 
 } // namespace Miren

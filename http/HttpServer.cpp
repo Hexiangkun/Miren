@@ -75,7 +75,12 @@ void HttpServer::onMessage(const HttpConnectionPtr& conn,
 {
   std::shared_ptr<HttpSession> httpSession = httpSessions_[conn];
   LOG_INFO << buf->toStringPiece().size();
-  if (!httpSession->parse(buf, receiveTime))
+  bool flag = false;
+  bool ret = httpSession->parse(buf, receiveTime, &flag);
+  if(flag) {
+    return;
+  }
+  if (!ret)
   {
     std::string res = "HTTP/1.1 400 Bad Request\r\n\r\n";
     ByteData* data = new ByteData();
