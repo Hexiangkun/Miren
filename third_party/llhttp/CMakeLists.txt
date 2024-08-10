@@ -24,8 +24,8 @@ endif()
 # Options
 #
 # Generic option
-option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so)" ON)
-option(BUILD_STATIC_LIBS "Build static libraries (.lib/.a)" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries (.dll/.so)" OFF)
+option(BUILD_STATIC_LIBS "Build static libraries (.lib/.a)" ON)
 
 # Source code
 set(LLHTTP_SOURCES
