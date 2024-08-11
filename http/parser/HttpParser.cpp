@@ -7,8 +7,8 @@ namespace Miren::http {
 
 HttpParser::HttpParser(llhttp_type type) 
   : type_(type),
-  request_(std::make_unique<HttpRequest>()),
-  response_(std::make_unique<HttpResponse>())
+  request_(nullptr),
+  response_(nullptr)
 {
   llhttp_settings_init(&settings_);
 
@@ -44,22 +44,20 @@ bool HttpParser::execute(const char* data, size_t len, size_t* offset) {
   }
 
   auto err = llhttp_execute(&parser_, data, len);
-  if(err ==  HPE_PAUSED) {
-    pause_ = true;
-    if(offset) {
-      *offset = length_ - start;
-    }
-    error_reason_ = "Data is not full";
-    return false;
-  }
-
+  *offset = size_t(length_ - start);
+  
   if (err != HPE_OK) {
+    if(pause_) {
+      error_reason_ = "body length is not equal content-length";
+      return false;
+    }
+    if((*offset) == (size_t)(llhttp_get_error_pos(&parser_) - start)) {
+      return true;
+    }
     error_reason_ = llhttp_get_error_reason(&parser_);
     return false;
   }
-  if(offset) {
-    *offset = length_ - start;
-  }
+
   return true;
 }
 
@@ -68,10 +66,9 @@ void HttpParser::reset() {
   length_ = nullptr;
   llhttp_reset(&parser_);
 
-  // request_ = std::make_unique<HttpRequest>();
-  // response_ = std::make_unique<HttpResponse>();
-  request_->reset();
-  response_->reset();
+  request_ = std::make_unique<HttpRequest>();
+  response_ = std::make_unique<HttpResponse>();
+
   key_.clear();
   value_.clear();
   error_reason_.clear();
@@ -85,16 +82,11 @@ int HttpParser::OnMessageBegin(llhttp_t* h) {
 };
 
 int HttpParser::OnMessageComplete(llhttp_t* h) {
-
   HttpParser* parser = (HttpParser*)h->data;
 
   parser->complete_ = true;
   if (parser->isRequest()) {
     parser->request_->setMethod(llhttp_method_t(parser->parser_.method));
-    bool ret = parser->request_->init();
-    if(!ret) {
-      return -1;
-    }
     // if (parser->req_handler_) {
     //   parser->req_handler_(parser->request_);
     // }
@@ -180,25 +172,17 @@ int HttpParser::OnBody(llhttp_t* h, const char* data, size_t len) {
     size_t length = parser->request_->getHeaderAs<size_t>("Content-Length");
     if(len < length) {
       parser->pause_ = true;
-      return HPE_PAUSED;
+      return -1;
     }
 
     if (parser->isRequest()) {
       parser->request_->appendBody(data, length);
-      parser->setLength(data+length);
-
     } else {
       parser->response_->appendBody(data, length);
-      parser->setLength(data+length);
     }
+    parser->setLength(data+length);
     return 0;
   }
-  if (len == 0) {
-    return 0;
-  }
-
-
-
   return 0;
 }
 
@@ -242,7 +226,7 @@ int HttpParser::OnHeaderValueComplete(llhttp_t* h) {
   return 0;
 }
 
-void HttpParser::reinit() {
+void HttpParser::reInit() {
   if (error_reason_.empty()) {
     return;
   }

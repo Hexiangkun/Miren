@@ -15,8 +15,8 @@ class HttpParser {
   HttpParser(const HttpParser&) = delete;
   void operator=(const HttpParser&) = delete;
 
-  bool execute(const std::string& data, size_t* offset = nullptr);
-  bool execute(const char* data, size_t len, size_t* offset = nullptr);
+  bool execute(const std::string& data, size_t* offset);
+  bool execute(const char* data, size_t len, size_t* offset);
 
 //   void SetRequestHandler(HttpRequestHandler h) { req_handler_ = std::move(h); }
 //   void SetResponseHandler(HttpResponseHandler h) { rsp_handler_ = std::move(h); }
@@ -34,7 +34,7 @@ class HttpParser {
   const std::string& errorReason() const { return error_reason_; }
 
   // for unit test
-  void reinit();
+  void reInit();
  private:
   void reset();
   void setLength(const char* data) { length_ = data; }
