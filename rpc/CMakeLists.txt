@@ -15,7 +15,7 @@ set_target_properties(miren_protorpc_wire PROPERTIES COMPILE_FLAGS "-Wno-error=s
 
 add_library(miren_protorpc RpcChannel.cpp RpcServer.cpp)
 set_target_properties(miren_protorpc PROPERTIES COMPILE_FLAGS "-Wno-error=shadow")
-target_link_libraries(miren_protorpc miren_protorpc_wire miren_protobuf_codec miren_net protobuf z)
+target_link_libraries(miren_protorpc miren_protorpc_wire miren_protobuf_codec net protobuf z)
 
 if(TCMALLOC_LIBRARY)
   target_link_libraries(miren_protorpc tcmalloc_and_profiler)
