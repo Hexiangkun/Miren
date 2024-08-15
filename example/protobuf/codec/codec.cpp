@@ -1,5 +1,5 @@
 #include "example/protobuf/codec/codec.h"
-#include "log/Logging.h"
+#include "base/log/Logging.h"
 #include "net/sockets/Endian.h"
 #include "rpc/google-inl.h"
 #include <google/protobuf/descriptor.h>
@@ -53,12 +53,12 @@ void ProtobufCodec::fillEmptyBuffer(Miren::net::Buffer* buf, const google::proto
 
   GOOGLE_DCHECK(message.IsInitialized()) << InitializationErrorMessage("serialize", message);
 
-  int byte_size = message.ByteSizeLong();
+  size_t byte_size = message.ByteSizeLong();
   buf->ensureWritableBytes(byte_size);
   uint8_t* start = reinterpret_cast<uint8_t*>(buf->beginWrite());
   uint8_t* end = message.SerializeWithCachedSizesToArray(start);
-  if(end - start != byte_size) {
-    ByteSizeConsistencyError(byte_size, message.ByteSizeLong(), static_cast<int>(end-start));
+  if(size_t(end - start) != byte_size) {
+    ByteSizeConsistencyError(static_cast<int>(byte_size), (int)message.ByteSizeLong(), static_cast<int>(end-start));
   }
   buf->hasWritten(byte_size);
 
