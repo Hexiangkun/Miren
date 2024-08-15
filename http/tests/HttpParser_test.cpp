@@ -63,7 +63,8 @@ const char test_response_data[] = "HTTP/1.1 200 OK\r\n"
 void test_response() {
     Miren::http::HttpParser parser(llhttp_type::HTTP_RESPONSE);
     std::string tmp = test_response_data;
-    size_t s = parser.execute(&tmp[0], tmp.size());
+    size_t offset = 0;
+    size_t s = parser.execute(&tmp[0], tmp.size(), &offset);
     std::cout << "execute rt=" << s
         << " has_error=" << parser.errorReason()
         << " is_finished=" << parser.isComplete()
