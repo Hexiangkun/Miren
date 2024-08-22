@@ -46,11 +46,11 @@ namespace Miren
             }
         }
 
-        void RpcServer::onMessage(const TcpConnectionPtr& conn, Buffer* buf, base::Timestamp receiveTime)
-        {
-            RpcChannelPtr& channel = std::any_cast<RpcChannelPtr&>(conn->getContext("con"));
-            channel->onMessage(conn, buf, receiveTime);
-        }
+        // void RpcServer::onMessage(const TcpConnectionPtr& conn, Buffer* buf, base::Timestamp receiveTime)
+        // {
+        //     RpcChannelPtr& channel = std::any_cast<RpcChannelPtr&>(conn->getContext("con"));
+        //     channel->onMessage(conn, buf, receiveTime);
+        // }
 
         } // namespace rpc
     } // namespace net
